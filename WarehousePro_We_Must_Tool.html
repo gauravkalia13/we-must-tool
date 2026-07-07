@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WarehousePro WMS - We Must Tool</title>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<style>
+:root {
+    --primary-dark:#0f172a; --sidebar-blue:#1e293b; --accent-blue:#2563eb; --accent-hover:#1d4ed8;
+    --bg-light:#f8fafc; --border-slate:#cbd5e1; --text-dark:#1e293b; --text-muted:#64748b;
+    --success-green:#16a34a; --warning-amber:#d97706; --danger-red:#dc2626;
+}
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;margin:0;background:var(--bg-light);color:var(--text-dark);display:flex;min-height:100vh}
+aside{width:280px;background:var(--sidebar-blue);color:white;display:flex;flex-direction:column;box-shadow:3px 0 10px rgba(0,0,0,.1);flex-shrink:0}
+.brand-section{padding:1.5rem;background:var(--primary-dark);font-size:1.3rem;font-weight:700;text-align:center;letter-spacing:.5px;border-bottom:1px solid rgba(255,255,255,.1)}
+.menu-list{display:flex;flex-direction:column;padding:1.25rem 0;gap:.25rem;flex-grow:1}
+.menu-item{background:none;border:none;color:#cbd5e1;padding:.95rem 1.5rem;text-align:left;font-size:.95rem;font-weight:500;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:12px}
+.menu-item:hover{background:rgba(255,255,255,.06);color:white}
+.menu-item.active{background:var(--accent-blue);color:white;border-left:5px solid white;font-weight:600}
+main{flex-grow:1;display:flex;flex-direction:column;min-width:0}
+header{background:white;padding:1.1rem 2.5rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-slate);box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.user-badge{font-size:.9rem;font-weight:500;background:#f1f5f9;padding:.4rem .9rem;border-radius:20px;border:1px solid var(--border-slate)}
+.app-workspace{padding:2.5rem;max-width:1500px;width:100%;margin:0 auto}
+.work-panel{background:white;padding:2.5rem;border-radius:10px;border:1px solid var(--border-slate);box-shadow:0 4px 12px rgba(15,23,42,.04);display:none}
+.work-panel.active{display:block}
+h2{margin-top:0;font-size:1.6rem;color:var(--primary-dark);font-weight:700}
+.panel-description{color:var(--text-muted);font-size:.95rem;margin-top:-.5rem;margin-bottom:2rem}
+.analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;margin-bottom:2.5rem}
+.kpi-card{background:white;padding:1.5rem;border-radius:8px;border:1px solid var(--border-slate);box-shadow:0 2px 4px rgba(0,0,0,.02);border-top:4px solid var(--accent-blue)}
+.kpi-title{font-size:.85rem;text-transform:uppercase;color:var(--text-muted);font-weight:700;letter-spacing:.5px}
+.kpi-number{font-size:2rem;font-weight:800;margin-top:.5rem;color:var(--primary-dark)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem;margin-bottom:1.5rem}
+.form-block{display:flex;flex-direction:column}
+label{font-weight:600;margin-bottom:.5rem;font-size:.85rem;color:var(--text-dark);text-transform:uppercase;letter-spacing:.3px}
+input,select,textarea{padding:.75rem;border:1px solid var(--border-slate);border-radius:6px;font-size:.95rem;background:white;color:var(--text-dark);transition:.2s;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent-blue);box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+.action-row{display:flex;gap:1rem;margin-top:1.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.wms-btn{background:var(--accent-blue);color:white;padding:.8rem 1.6rem;border:none;border-radius:6px;cursor:pointer;font-size:.95rem;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:.2s}
+.wms-btn:hover{background:var(--accent-hover)}
+.wms-btn-success{background:var(--success-green)}.wms-btn-success:hover{background:#15803d}
+.wms-btn-warning{background:var(--warning-amber)}.wms-btn-warning:hover{background:#b45309}
+.wms-btn-danger{background:var(--danger-red)}.wms-btn-danger:hover{background:#b91c1c}
+.wms-btn-secondary{background:#475569}.wms-btn-secondary:hover{background:#334155}
+.table-container{width:100%;overflow-x:auto;margin-top:1.5rem;border:1px solid var(--border-slate);border-radius:8px}
+table{width:100%;border-collapse:collapse;text-align:left;background:white}
+th,td{padding:1rem 1.25rem;border-bottom:1px solid var(--border-slate);font-size:.9rem}
+th{background:#f8fafc;font-weight:600;color:var(--primary-dark);border-bottom:2px solid var(--border-slate);text-transform:uppercase;font-size:.8rem;letter-spacing:.5px}
+tr:last-child td{border-bottom:none} tr:hover td{background:#f8fafc}
+.thermal-label-container{display:flex;flex-wrap:wrap;gap:18px;background:#e2e8f0;padding:2rem;border-radius:8px;margin-top:1.5rem;border:2px dashed var(--border-slate)}
+.thermal-4x6-sheet{width:4in;height:6in;background:white;border:3px solid black;box-shadow:0 10px 25px rgba(0,0,0,.1);padding:.22in;display:flex;flex-direction:column;justify-content:space-between;page-break-after:always}
+.thermal-header-title{font-size:1.15rem;font-weight:900;text-align:center;border-bottom:4px solid black;padding-bottom:.45rem;margin:0 0 .7rem;letter-spacing:1px}
+.thermal-meta-field{font-size:1rem;line-height:1.35;font-weight:700;margin:.35rem 0}
+.thermal-barcode-box{padding:.5rem 0;text-align:center;margin:.7rem 0 .3rem;background:white}
+.thermal-barcode-box svg{width:100%;height:85px}
+.thermal-barcode-text{text-align:center;font-size:1rem;font-weight:800;letter-spacing:.5px}
+.badge{display:inline-block;padding:.25rem .55rem;border-radius:999px;font-size:.75rem;font-weight:700;background:#e0f2fe;color:#075985}
+@media(max-width:850px){body{display:block}aside{width:100%;height:auto}.menu-list{display:grid;grid-template-columns:repeat(2,1fr)}.app-workspace{padding:1rem}header{padding:1rem}}
+@media print{
+aside,header,.no-print{display:none!important}
+body{display:block;background:white}
+main,.app-workspace,.work-panel{display:block!important;padding:0;margin:0;box-shadow:none;border:0}
+.work-panel:not(#labelsPanel){display:none!important}
+.thermal-label-container{display:block;background:white;border:0;padding:0}
+.thermal-4x6-sheet{width:4in;height:6in;margin:0;border:1px solid black;box-shadow:none}
+}
+</style>
+</head>
+<body>
+<aside class="no-print">
+<div class="brand-section">📦 We Must Tool<br><small>WarehousePro WMS</small></div>
+<div class="menu-list">
+<button class="menu-item active" onclick="showPanel(event,'dashboardPanel')">📊 Dashboard</button>
+<button class="menu-item" onclick="showPanel(event,'importPanel')">📥 Import Odoo CSV</button>
+<button class="menu-item" onclick="showPanel(event,'inventoryPanel')">🔍 Inventory Search</button>
+<button class="menu-item" onclick="showPanel(event,'countPanel')">📝 Physical Count</button>
+<button class="menu-item" onclick="showPanel(event,'transferPanel')">🚚 Transfers</button>
+<button class="menu-item" onclick="showPanel(event,'adjustPanel')">➕ Adjustments</button>
+<button class="menu-item" onclick="showPanel(event,'labelsPanel')">🏷️ 4×6 Labels</button>
+<button class="menu-item" onclick="showPanel(event,'exportPanel')">📤 Export / Backup</button>
+</div>
+</aside>
+
+<main>
+<header class="no-print">
+<div><strong>Enterprise Operations Portal</strong><br><small id="todayDate"></small></div>
+<div class="user-badge">Warehouse Lead: Gaurav</div>
+</header>
+
+<div class="app-workspace">
+<section id="dashboardPanel" class="work-panel active">
+<h2>Warehouse Dashboard</h2>
+<p class="panel-description">Live summary from imported Odoo CSV and warehouse count activity.</p>
+<div class="analytics-grid">
+<div class="kpi-card"><div class="kpi-title">Total SKUs</div><div class="kpi-number" id="kpiSkus">0</div></div>
+<div class="kpi-card"><div class="kpi-title">Total Cases</div><div class="kpi-number" id="kpiCases">0</div></div>
+<div class="kpi-card"><div class="kpi-title">Total Pieces</div><div class="kpi-number" id="kpiPieces">0</div></div>
+<div class="kpi-card"><div class="kpi-title">Pallets</div><div class="kpi-number" id="kpiPallets">0</div></div>
+<div class="kpi-card"><div class="kpi-title">Physical Counts</div><div class="kpi-number" id="kpiCounts">0</div></div>
+<div class="kpi-card"><div class="kpi-title">Transfers</div><div class="kpi-number" id="kpiTransfers">0</div></div>
+</div>
+<div class="table-container"><table id="activityTable"></table></div>
+</section>
+
+<section id="importPanel" class="work-panel">
+<h2>Import Odoo CSV</h2>
+<p class="panel-description">Import product master data. The tool supports columns like DESCRIPTION_SKU, ProductType, SKU, Internal Reference, Barcode, Warehouse, Location, Cases and Pieces.</p>
+<div class="form-grid">
+<div class="form-block"><label>CSV File</label><input type="file" id="csvInput" accept=".csv"></div>
+</div>
+<div class="action-row">
+<button class="wms-btn wms-btn-success" onclick="importCSV()">Process CSV File</button>
+<button class="wms-btn wms-btn-secondary" onclick="loadSample()">Load Sample Data</button>
+</div>
+<div id="importStatus"></div>
+</section>
+
+<section id="inventoryPanel" class="work-panel">
+<h2>Inventory Search</h2>
+<p class="panel-description">Search by description, SKU, barcode, color, size, warehouse, location or pallet.</p>
+<div class="form-grid">
+<div class="form-block"><label>Search</label><input id="searchBox" placeholder="Start typing..." oninput="renderInventory()"></div>
+</div>
+<div class="table-container"><table id="inventoryTable"></table></div>
+</section>
+
+<section id="countPanel" class="work-panel">
+<h2>Physical Count</h2>
+<p class="panel-description">Count cases, pieces, pallets and assign location while organizing the warehouse.</p>
+<form onsubmit="saveCount(event)">
+<div class="form-grid">
+<div class="form-block"><label>SKU / Barcode</label><input id="countSku" list="skuList" required oninput="fillCountItem()"></div>
+<div class="form-block"><label>Location</label><input id="countLocation" placeholder="A01-R02-S03-B04" required></div>
+<div class="form-block"><label>Pallet ID</label><input id="countPallet" placeholder="PAL001"></div>
+<div class="form-block"><label>Pallets</label><input type="number" id="countPallets" value="0" min="0"></div>
+<div class="form-block"><label>Cases</label><input type="number" id="countCases" value="0" min="0"></div>
+<div class="form-block"><label>Pieces</label><input type="number" id="countPieces" value="0" min="0"></div>
+<div class="form-block"><label>Counted By</label><input id="countedBy" placeholder="Gaurav"></div>
+</div>
+<div id="countInfo"></div>
+<button class="wms-btn wms-btn-success" type="submit">Save Physical Count</button>
+</form>
+<div class="table-container"><table id="countTable"></table></div>
+</section>
+
+<section id="transferPanel" class="work-panel">
+<h2>Transfers</h2>
+<p class="panel-description">Move inventory from one warehouse/location/pallet to another.</p>
+<form onsubmit="saveTransfer(event)">
+<div class="form-grid">
+<div class="form-block"><label>SKU / Barcode</label><input id="transferSku" list="skuList" required oninput="fillTransferItem()"></div>
+<div class="form-block"><label>From Warehouse</label><input id="fromWh"></div>
+<div class="form-block"><label>From Location</label><input id="fromLoc"></div>
+<div class="form-block"><label>To Warehouse</label><input id="toWh" required></div>
+<div class="form-block"><label>To Location</label><input id="toLoc" required></div>
+<div class="form-block"><label>To Pallet</label><input id="toPallet"></div>
+<div class="form-block"><label>Cases</label><input type="number" id="transferCases" value="0"></div>
+<div class="form-block"><label>Pieces</label><input type="number" id="transferPieces" value="0"></div>
+<div class="form-block"><label>Reason</label><input id="transferReason" value="Warehouse Transfer"></div>
+</div>
+<div id="transferInfo"></div>
+<button class="wms-btn wms-btn-success" type="submit">Save Transfer</button>
+</form>
+<div class="table-container"><table id="transferTable"></table></div>
+</section>
+
+<section id="adjustPanel" class="work-panel">
+<h2>Adjustments</h2>
+<p class="panel-description">Add, remove, or set quantities with a reason for audit trail.</p>
+<form onsubmit="saveAdjustment(event)">
+<div class="form-grid">
+<div class="form-block"><label>SKU / Barcode</label><input id="adjustSku" list="skuList" required oninput="fillAdjustItem()"></div>
+<div class="form-block"><label>Type</label><select id="adjustType"><option>Add</option><option>Remove</option><option>Set</option></select></div>
+<div class="form-block"><label>Cases</label><input type="number" id="adjustCases" value="0"></div>
+<div class="form-block"><label>Pieces</label><input type="number" id="adjustPieces" value="0"></div>
+<div class="form-block"><label>Reason</label><select id="adjustReason"><option>Damaged</option><option>Missing</option><option>Found</option><option>Cycle Count</option><option>Return</option><option>Manual Correction</option></select></div>
+<div class="form-block"><label>Adjusted By</label><input id="adjustedBy" placeholder="Gaurav"></div>
+</div>
+<div id="adjustInfo"></div>
+<button class="wms-btn wms-btn-warning" type="submit">Save Adjustment</button>
+</form>
+<div class="table-container"><table id="adjustTable"></table></div>
+</section>
+
+<section id="labelsPanel" class="work-panel">
+<div class="no-print">
+<h2>4×6 Barcode Labels</h2>
+<p class="panel-description">Generate Code 128 labels for products. Search blank = all products.</p>
+<div class="form-grid">
+<div class="form-block"><label>Search SKU / Description</label><input id="labelSearch" placeholder="Leave blank for all"></div>
+</div>
+<div class="action-row">
+<button class="wms-btn" onclick="generateLabels()">Generate Labels</button>
+<button class="wms-btn wms-btn-success" onclick="window.print()">Print Labels</button>
+</div>
+</div>
+<div id="labelArea" class="thermal-label-container"></div>
+</section>
+
+<section id="exportPanel" class="work-panel">
+<h2>Export / Backup</h2>
+<p class="panel-description">Export updated inventory, counts, transfers and adjustments.</p>
+<div class="action-row">
+<button class="wms-btn" onclick="exportInventory()">Export Inventory CSV</button>
+<button class="wms-btn" onclick="exportCounts()">Export Counts CSV</button>
+<button class="wms-btn" onclick="exportAllBackup()">Download Full Backup JSON</button>
+<button class="wms-btn wms-btn-danger" onclick="clearAll()">Clear Local Data</button>
+</div>
+</section>
+</div>
+</main>
+
+<datalist id="skuList"></datalist>
+
+<script>
+let db = JSON.parse(localStorage.getItem('warehousepro_wmt') || '{"items":[],"counts":[],"transfers":[],"adjustments":[],"activity":[]}');
+
+function save(){localStorage.setItem('warehousepro_wmt', JSON.stringify(db)); refresh();}
+function showPanel(event,id){document.querySelectorAll('.work-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.menu-item').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');event.currentTarget.classList.add('active');refresh();}
+function log(type,msg){db.activity.unshift({date:new Date().toLocaleString(),type,msg});db.activity=db.activity.slice(0,100);}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+function csvEsc(v){return '"' + String(v??'').replaceAll('"','""') + '"';}
+function table(id,heads,rows){let el=document.getElementById(id);if(!el)return;el.innerHTML='<tr>'+heads.map(h=>'<th>'+h+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('');}
+function findItem(q){q=String(q||'').toLowerCase().trim();return db.items.find(i=>String(i.sku).toLowerCase()==q || String(i.barcode).toLowerCase()==q);}
+function parseCSV(text){let rows=[],row=[],cell='',quote=false;for(let i=0;i<text.length;i++){let c=text[i],n=text[i+1];if(c=='"'&&quote&&n=='"'){cell+='"';i++}else if(c=='"'){quote=!quote}else if(c==','&&!quote){row.push(cell);cell=''}else if((c=='\n'||c=='\r')&&!quote){if(cell||row.length){row.push(cell);rows.push(row);row=[];cell=''}if(c=='\r'&&n=='\n')i++}else cell+=c}if(cell||row.length){row.push(cell);rows.push(row)}return rows;}
+function pick(obj,names){let keys=Object.keys(obj);for(let n of names){let k=keys.find(k=>k.toLowerCase().replace(/\s|_/g,'').includes(n.toLowerCase().replace(/\s|_/g,'')));if(k)return obj[k]}return ''}
+function splitType(type){let parts=String(type||'').split('_').filter(Boolean);let sizes=['XS','S','M','L','XL','XXL','XXXL','2XL','3XL','4XL','5XL','6XL','YXS','YS','YM','YL','YXL'];let last=(parts[parts.length-1]||'').toUpperCase();if(sizes.includes(last))return {color:parts.slice(0,-1).join('/'),size:last};return {color:parts.join('/'),size:''};}
+
+function importCSV(){
+let file=document.getElementById('csvInput').files[0];if(!file){alert('Choose CSV first');return}
+let reader=new FileReader();
+reader.onload=e=>{
+let rows=parseCSV(e.target.result);let headers=rows.shift().map(h=>h.trim());db.items=[];
+rows.forEach((r,idx)=>{let o={};headers.forEach((h,i)=>o[h]=r[i]||'');let productType=pick(o,['ProductType','Variant','Attribute']);let st=splitType(productType);let desc=pick(o,['DESCRIPTION_SKU','Description','Name','Product']);let sku=pick(o,['Internal Reference','SKU','Default Code','Code','ProductType'])||productType||('SKU'+String(idx+1).padStart(5,'0'));
+if(desc||sku){db.items.push({id:idx+1,description:desc||'Unknown Item',sku:String(sku).trim(),barcode:pick(o,['Barcode','UPC'])||String(sku).trim(),color:pick(o,['Color','Colour'])||st.color,size:pick(o,['Size'])||st.size,warehouse:pick(o,['Warehouse'])||'Main Warehouse',location:pick(o,['Location'])||'Unassigned',pallet:pick(o,['Pallet'])||'',cases:Number(pick(o,['Cases']))||0,pieces:Number(pick(o,['Pieces','Quantity','Qty']))||0,notes:''});}});
+log('Import','Imported '+db.items.length+' items from CSV');document.getElementById('importStatus').innerHTML='<span class="badge">Imported '+db.items.length+' items successfully</span>';save();};
+reader.readAsText(file);
+}
+
+function loadSample(){
+db.items=[
+{id:1,description:'Adult Sports Reversible Pinnie',sku:'BLACK_WHITE_XL',barcode:'BLACK_WHITE_XL',color:'BLACK/WHITE',size:'XL',warehouse:'Main Warehouse',location:'A01-R01-S01-B01',pallet:'PAL001',cases:10,pieces:5},
+{id:2,description:'Youth Jersey',sku:'NAVY_YM',barcode:'NAVY_YM',color:'NAVY',size:'YM',warehouse:'Main Warehouse',location:'A01-R02-S01-B02',pallet:'PAL002',cases:4,pieces:12}
+];log('Sample','Loaded sample data');save();
+}
+
+function renderInventory(){
+let q=(document.getElementById('searchBox')?.value||'').toLowerCase();let rows=db.items.filter(i=>JSON.stringify(i).toLowerCase().includes(q)).slice(0,700);
+table('inventoryTable',['Description','SKU','Barcode','Color','Size','Warehouse','Location','Pallet','Cases','Pieces','Action'],rows.map(i=>[esc(i.description),esc(i.sku),esc(i.barcode),esc(i.color),esc(i.size),esc(i.warehouse),esc(i.location),esc(i.pallet),i.cases||0,i.pieces||0,`<button class="wms-btn" onclick="labelOne('${esc(i.sku)}')">Label</button>`]));
+}
+
+function fillDataList(){let dl=document.getElementById('skuList');dl.innerHTML=db.items.map(i=>`<option value="${esc(i.sku)}">${esc(i.description)}</option>`).join('');}
+function fillCountItem(){let i=findItem(document.getElementById('countSku').value);document.getElementById('countInfo').innerHTML=i?`<p><b>${esc(i.description)}</b> | Current: ${i.cases||0} cases, ${i.pieces||0} pieces | ${esc(i.location)}</p>`:'';}
+function fillTransferItem(){let i=findItem(document.getElementById('transferSku').value);if(i){document.getElementById('fromWh').value=i.warehouse||'';document.getElementById('fromLoc').value=i.location||'';document.getElementById('toWh').value=i.warehouse||'';document.getElementById('toLoc').value=i.location||'';document.getElementById('toPallet').value=i.pallet||'';document.getElementById('transferInfo').innerHTML=`<p><b>${esc(i.description)}</b> | Current pallet ${esc(i.pallet)}</p>`;}}
+function fillAdjustItem(){let i=findItem(document.getElementById('adjustSku').value);document.getElementById('adjustInfo').innerHTML=i?`<p><b>${esc(i.description)}</b> | Current: ${i.cases||0} cases, ${i.pieces||0} pieces</p>`:'';}
+
+function saveCount(e){e.preventDefault();let i=findItem(document.getElementById('countSku').value);if(!i){alert('SKU not found');return}let rec={date:new Date().toLocaleString(),sku:i.sku,description:i.description,oldCases:i.cases||0,oldPieces:i.pieces||0,location:document.getElementById('countLocation').value,pallet:document.getElementById('countPallet').value,pallets:+document.getElementById('countPallets').value||0,cases:+document.getElementById('countCases').value||0,pieces:+document.getElementById('countPieces').value||0,countedBy:document.getElementById('countedBy').value};i.location=rec.location;i.pallet=rec.pallet;i.cases=rec.cases;i.pieces=rec.pieces;db.counts.unshift(rec);log('Physical Count',i.sku+' counted');save();e.target.reset();}
+function saveTransfer(e){e.preventDefault();let i=findItem(document.getElementById('transferSku').value);if(!i){alert('SKU not found');return}let rec={date:new Date().toLocaleString(),sku:i.sku,description:i.description,fromWh:i.warehouse,fromLoc:i.location,toWh:document.getElementById('toWh').value,toLoc:document.getElementById('toLoc').value,toPallet:document.getElementById('toPallet').value,cases:+document.getElementById('transferCases').value||0,pieces:+document.getElementById('transferPieces').value||0,reason:document.getElementById('transferReason').value};i.warehouse=rec.toWh;i.location=rec.toLoc;i.pallet=rec.toPallet;db.transfers.unshift(rec);log('Transfer',i.sku+' transferred to '+rec.toLoc);save();e.target.reset();}
+function saveAdjustment(e){e.preventDefault();let i=findItem(document.getElementById('adjustSku').value);if(!i){alert('SKU not found');return}let type=document.getElementById('adjustType').value,c=+document.getElementById('adjustCases').value||0,p=+document.getElementById('adjustPieces').value||0;if(type=='Add'){i.cases=(+i.cases||0)+c;i.pieces=(+i.pieces||0)+p}else if(type=='Remove'){i.cases=(+i.cases||0)-c;i.pieces=(+i.pieces||0)-p}else{i.cases=c;i.pieces=p}let rec={date:new Date().toLocaleString(),sku:i.sku,description:i.description,type,cases:c,pieces:p,reason:document.getElementById('adjustReason').value,by:document.getElementById('adjustedBy').value};db.adjustments.unshift(rec);log('Adjustment',i.sku+' '+type);save();e.target.reset();}
+
+function renderTables(){
+table('countTable',['Date','SKU','Description','Location','Pallet','Pallets','Cases','Pieces','By'],db.counts.map(r=>[r.date,esc(r.sku),esc(r.description),esc(r.location),esc(r.pallet),r.pallets,r.cases,r.pieces,esc(r.countedBy)]));
+table('transferTable',['Date','SKU','From','To','Pallet','Cases','Pieces','Reason'],db.transfers.map(r=>[r.date,esc(r.sku),esc(r.fromLoc),esc(r.toLoc),esc(r.toPallet),r.cases,r.pieces,esc(r.reason)]));
+table('adjustTable',['Date','SKU','Type','Cases','Pieces','Reason','By'],db.adjustments.map(r=>[r.date,esc(r.sku),esc(r.type),r.cases,r.pieces,esc(r.reason),esc(r.by)]));
+table('activityTable',['Date','Type','Activity'],db.activity.slice(0,20).map(r=>[r.date,esc(r.type),esc(r.msg)]));
+}
+
+function labelOne(sku){document.getElementById('labelSearch').value=sku;document.querySelectorAll('.work-panel').forEach(p=>p.classList.remove('active'));document.getElementById('labelsPanel').classList.add('active');generateLabels();}
+function generateLabels(){
+let q=(document.getElementById('labelSearch').value||'').toLowerCase();let items=db.items.filter(i=>!q||JSON.stringify(i).toLowerCase().includes(q));let area=document.getElementById('labelArea');area.innerHTML='';
+items.forEach((i,idx)=>{let div=document.createElement('div');div.className='thermal-4x6-sheet';div.innerHTML=`<div><h3 class="thermal-header-title">WE MUST TOOL</h3><div class="thermal-meta-field">${esc(i.description)}</div><div class="thermal-meta-field">SKU: ${esc(i.sku)}</div><div class="thermal-meta-field">Color: ${esc(i.color)} &nbsp; Size: ${esc(i.size)}</div><div class="thermal-meta-field">WH: ${esc(i.warehouse)}</div><div class="thermal-meta-field">LOC: ${esc(i.location)}</div><div class="thermal-meta-field">PALLET: ${esc(i.pallet)}</div></div><div><div class="thermal-barcode-box"><svg id="bc${idx}"></svg></div><div class="thermal-barcode-text">${esc(i.barcode||i.sku)}</div></div><div style="border-top:2px solid #000;padding-top:.4rem;font-weight:800;text-align:right">Cases: ${i.cases||0} | Pieces: ${i.pieces||0}</div>`;area.appendChild(div);setTimeout(()=>JsBarcode('#bc'+idx,i.barcode||i.sku||'NO-SKU',{format:'CODE128',displayValue:false}),50);});
+}
+
+function exportRows(name,heads,rows){let csv=[heads,...rows].map(r=>r.map(csvEsc).join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=name;a.click();}
+function exportInventory(){exportRows('we_must_inventory_export.csv',['Description','SKU','Barcode','Color','Size','Warehouse','Location','Pallet','Cases','Pieces'],db.items.map(i=>[i.description,i.sku,i.barcode,i.color,i.size,i.warehouse,i.location,i.pallet,i.cases,i.pieces]));}
+function exportCounts(){exportRows('we_must_physical_counts.csv',['Date','SKU','Description','Location','Pallet','Pallets','Cases','Pieces','By'],db.counts.map(r=>[r.date,r.sku,r.description,r.location,r.pallet,r.pallets,r.cases,r.pieces,r.countedBy]));}
+function exportAllBackup(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='we_must_tool_backup.json';a.click();}
+function clearAll(){if(confirm('Clear all local browser data?')){localStorage.removeItem('warehousepro_wmt');location.reload();}}
+
+function refresh(){
+document.getElementById('todayDate').textContent=new Date().toLocaleString();
+document.getElementById('kpiSkus').textContent=db.items.length;
+document.getElementById('kpiCases').textContent=db.items.reduce((a,b)=>a+(+b.cases||0),0);
+document.getElementById('kpiPieces').textContent=db.items.reduce((a,b)=>a+(+b.pieces||0),0);
+document.getElementById('kpiPallets').textContent=new Set(db.items.map(i=>i.pallet).filter(Boolean)).size;
+document.getElementById('kpiCounts').textContent=db.counts.length;
+document.getElementById('kpiTransfers').textContent=db.transfers.length;
+fillDataList();renderInventory();renderTables();
+}
+refresh();setInterval(()=>document.getElementById('todayDate').textContent=new Date().toLocaleString(),1000);
+</script>
+</body>
+</html>
